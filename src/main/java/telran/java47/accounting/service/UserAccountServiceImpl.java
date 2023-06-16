@@ -60,11 +60,11 @@ public class UserAccountServiceImpl implements UserAccountService {
 	public RolesDto changeRolesList(String login, String role, boolean isAddRole) {
 		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundException::new);
 		if (isAddRole) {
-			userAccount.addRole(role);
+			userAccount.addRole(role.toUpperCase());
 		} else {
-			userAccount.removeRole(role);
+			userAccount.removeRole(role.toUpperCase());
 		}
-//		userAccountRepository.save(userAccount);
+		userAccountRepository.save(userAccount);
 		return modelMapper.map(userAccount, RolesDto.class);
 	}
 

@@ -10,17 +10,38 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+
+import lombok.RequiredArgsConstructor;
+import telran.java47.accounting.dao.UserAccountRepository;
+import telran.java47.accounting.model.UserAccount;
+
+@Component
+@Order(20)
+@RequiredArgsConstructor
 public class AdminFilter implements Filter {
 
+	final UserAccountRepository userAccountRepository;
+	
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
 			throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
-		System.out.println(request.getUserPrincipal().getName());
-		
+		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
+			String login = request.getUserPrincipal().getName();
+			UserAccount userAccount = userAccountRepository.findById(login).orElse(null);
+			if (userAccount.getRoles().contains("ADMIN")) {
+				chain.doFilter(request, response);
+			} else {
+				response.sendError(403, "access is not allowed");
+			}
+		}
 		chain.doFilter(request, response);
-		
 	}
 
+	private boolean checkEndPoint(String method, String path) {
+		return "DELETE".equalsIgnoreCase(method) || path.matches("\\/account\\/user\\/\\w+\\/role\\/\\w+\\/?");	
+	}
 }
