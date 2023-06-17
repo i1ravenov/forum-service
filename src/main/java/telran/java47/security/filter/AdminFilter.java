@@ -32,7 +32,8 @@ public class AdminFilter implements Filter {
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
 			String login = request.getUserPrincipal().getName();
 			UserAccount userAccount = userAccountRepository.findById(login).orElse(null);
-			if (!userAccount.getRoles().contains("ADMIN") && !isOwner(request, login)) {
+			String path = request.getServletPath();
+			if (!userAccount.getRoles().contains("ADMIN") && !isOwner(path, login)) {
 				response.sendError(403, "access is not allowed");
 				return;
 			}
@@ -40,8 +41,8 @@ public class AdminFilter implements Filter {
 		chain.doFilter(request, response);
 	}
 
-	private boolean isOwner(HttpServletRequest request, String login) {
-		return request.getServletPath().contains(login);
+	private boolean isOwner(String path, String login) {
+		return path.contains(login) && path.matches("/account/user/\\w+/?");
 	}
 
 	private boolean checkEndPoint(String method, String path) {
