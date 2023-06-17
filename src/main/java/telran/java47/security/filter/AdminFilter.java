@@ -32,16 +32,19 @@ public class AdminFilter implements Filter {
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
 			String login = request.getUserPrincipal().getName();
 			UserAccount userAccount = userAccountRepository.findById(login).orElse(null);
-			if (userAccount.getRoles().contains("ADMIN")) {
-				chain.doFilter(request, response);
-			} else {
+			if (!userAccount.getRoles().contains("ADMIN") && !isOwner(request, login)) {
 				response.sendError(403, "access is not allowed");
+				return;
 			}
 		}
 		chain.doFilter(request, response);
 	}
 
+	private boolean isOwner(HttpServletRequest request, String login) {
+		return request.getServletPath().contains(login);
+	}
+
 	private boolean checkEndPoint(String method, String path) {
-		return "DELETE".equalsIgnoreCase(method) || path.matches("\\/account\\/user\\/\\w+\\/role\\/\\w+\\/?");	
+		return "DELETE".equalsIgnoreCase(method) || path.matches("/account/user/\\w+/role/\\w+/?");	
 	}
 }

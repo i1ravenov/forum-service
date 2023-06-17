@@ -42,7 +42,6 @@ public class ForumServiceImpl implements ForumService {
 
 	@Override
 	public PostDto getPostById(String id) {
-		// TODO Auto-generated method stub
 		Post post = forumRepo.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
 					"Post with id " + id + " not found"));
 		return modelMapper.map(post, PostDto.class);
@@ -80,13 +79,9 @@ public class ForumServiceImpl implements ForumService {
 
 	@Override
 	public List<PostDto> findPostsByTags(List<String> tags) {
-		Set<Post> postsByTags = new HashSet<>();
-		for (String tag : tags) {
-			postsByTags.addAll(forumRepo.findPostsByTag(tag));
-		}
-		return postsByTags.stream()
-						.map(p -> modelMapper.map(p, PostDto.class))
-						.collect(Collectors.toList());
+		return forumRepo.findByTagsInIgnoreCase(tags)
+				.map(p -> modelMapper.map(p, PostDto.class))
+				.collect(Collectors.toList());
 	}
 
 	@Override
