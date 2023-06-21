@@ -20,7 +20,7 @@ public class UserAccount {
 	String firstName;
 	@Setter
 	String lastName;
-	Set<String> roles;
+	Set<UserRole> roles;
 
 	public UserAccount() {
 		roles = new HashSet<>();
@@ -34,11 +34,11 @@ public class UserAccount {
 		this.lastName = lastName;
 	}
 
-	public boolean addRole(String role) {
+	public boolean addRole(UserRole role) {
 		return roles.add(role);
 	}
 	
-	public boolean removeRole(String role) {
+	public boolean removeRole(UserRole role) {
 		return roles.remove(role);
 	}
 

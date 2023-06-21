@@ -16,11 +16,12 @@ import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 import telran.java47.accounting.dao.UserAccountRepository;
 import telran.java47.accounting.model.UserAccount;
+import telran.java47.accounting.model.UserRole;
 
 @Component
 @Order(20)
 @RequiredArgsConstructor
-public class AdminFilter implements Filter {
+public class RolesManagingFilter implements Filter {
 
 	final UserAccountRepository userAccountRepository;
 	
@@ -32,8 +33,7 @@ public class AdminFilter implements Filter {
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
 			String login = request.getUserPrincipal().getName();
 			UserAccount userAccount = userAccountRepository.findById(login).orElse(null);
-			String path = request.getServletPath();
-			if (!userAccount.getRoles().contains("ADMIN") && !isOwner(path, login)) {
+			if (!userAccount.getRoles().contains(UserRole.ADMIN)) {
 				response.sendError(403, "access is not allowed");
 				return;
 			}
@@ -41,11 +41,7 @@ public class AdminFilter implements Filter {
 		chain.doFilter(request, response);
 	}
 
-	private boolean isOwner(String path, String login) {
-		return path.contains(login) && path.matches("/account/user/\\w+/?");
-	}
-
 	private boolean checkEndPoint(String method, String path) {
-		return "DELETE".equalsIgnoreCase(method) || path.matches("/account/user/\\w+/role/\\w+/?");	
+		return path.matches("/account/user/\\w+/role/\\w+/?");	
 	}
 }
