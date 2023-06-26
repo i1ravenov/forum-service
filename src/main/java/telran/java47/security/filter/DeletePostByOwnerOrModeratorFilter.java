@@ -14,11 +14,10 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
-import telran.java47.accounting.dao.UserAccountRepository;
-import telran.java47.accounting.model.UserAccount;
 import telran.java47.accounting.model.UserRole;
 import telran.java47.forum.dao.ForumRepository;
 import telran.java47.forum.model.Post;
+import telran.java47.security.model.User;
 
 @Component
 @RequiredArgsConstructor
@@ -26,7 +25,6 @@ import telran.java47.forum.model.Post;
 public class DeletePostByOwnerOrModeratorFilter implements Filter {
 
 	final ForumRepository forumRepository;
-	final UserAccountRepository userAccountRepository;
 	
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -35,13 +33,13 @@ public class DeletePostByOwnerOrModeratorFilter implements Filter {
 		HttpServletResponse response = (HttpServletResponse) resp;
 		String path = request.getServletPath();
 		if (checkEndPoint(request.getMethod(), path)) {
+			User user = (User) request.getUserPrincipal();
 			String login = request.getUserPrincipal().getName();
 			String[] arr = path.split("/");
 			String postId = arr[arr.length - 1];
 			Post post = forumRepository.findById(postId).get();
 			String author = post.getAuthor();
-			UserAccount userAccount = userAccountRepository.findById(login).get();
-			if (!(login.equalsIgnoreCase(author) || userAccount.getRoles().contains(UserRole.MODERATOR))) {
+			if (!(login.equalsIgnoreCase(author) || user.getRoles().contains(UserRole.MODERATOR))) {
 				response.sendError(403);
 				return;
 			}

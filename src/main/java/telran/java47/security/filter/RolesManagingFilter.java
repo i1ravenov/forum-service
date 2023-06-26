@@ -13,27 +13,21 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import lombok.RequiredArgsConstructor;
-import telran.java47.accounting.dao.UserAccountRepository;
-import telran.java47.accounting.model.UserAccount;
 import telran.java47.accounting.model.UserRole;
+import telran.java47.security.model.User;
 
 @Component
 @Order(20)
-@RequiredArgsConstructor
 public class RolesManagingFilter implements Filter {
 
-	final UserAccountRepository userAccountRepository;
-	
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
 			throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
-			String login = request.getUserPrincipal().getName();
-			UserAccount userAccount = userAccountRepository.findById(login).orElse(null);
-			if (!userAccount.getRoles().contains(UserRole.ADMIN)) {
+			User user = (User) request.getUserPrincipal();
+			if (!user.getRoles().contains(UserRole.ADMIN)) {
 				response.sendError(403, "access is not allowed");
 				return;
 			}
@@ -42,6 +36,6 @@ public class RolesManagingFilter implements Filter {
 	}
 
 	private boolean checkEndPoint(String method, String path) {
-		return path.matches("/account/user/\\w+/role/\\w+/?");	
+		return path.matches("/account/user/\\w+/role/\\w+/?");
 	}
 }

@@ -14,9 +14,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
-import telran.java47.accounting.dao.UserAccountRepository;
-import telran.java47.accounting.model.UserAccount;
-import telran.java47.accounting.model.UserRole;
 import telran.java47.forum.dao.ForumRepository;
 import telran.java47.forum.model.Post;
 
@@ -37,9 +34,9 @@ public class UpdatePostByOwnerFilter implements Filter {
 			String login = request.getUserPrincipal().getName();
 			String[] arr = path.split("/");
 			String postId = arr[arr.length - 1];
-			Post post = forumRepository.findById(postId).get();
+			Post post = forumRepository.findById(postId).orElse(null);
 			String author = post.getAuthor();
-			if (!(login.equalsIgnoreCase(author))) {
+			if (post == null || !(login.equalsIgnoreCase(author))) {
 				response.sendError(403);
 				return;
 			}
