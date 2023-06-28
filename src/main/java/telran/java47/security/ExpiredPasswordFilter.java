@@ -1,9 +1,8 @@
-package telran.java47.security.filter;
+package telran.java47.security;
 
 import java.io.IOException;
 import java.security.Principal;
 
-import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -12,17 +11,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
+import org.springframework.web.filter.GenericFilterBean;
 
 import lombok.RequiredArgsConstructor;
 import telran.java47.accounting.dao.UserAccountRepository;
 import telran.java47.accounting.model.UserAccount;
-import telran.java47.accounting.model.UserRole;
 
 @Component
+@Order(10)
 @RequiredArgsConstructor
-@Order(40)
-public class DeleteUserFilter implements Filter {
+public class ExpiredPasswordFilter extends GenericFilterBean {
 
 	final UserAccountRepository userAccountRepository;
 
@@ -31,15 +31,12 @@ public class DeleteUserFilter implements Filter {
 			throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
-		String path = request.getServletPath();
-		if (checkEndPoint(request.getMethod(), path)) {
-			Principal principal = request.getUserPrincipal();
-			String[] arr = path.split("/");
-			String user = arr[arr.length - 1];
-			UserAccount userAccount = userAccountRepository.findById(principal.getName()).get();
-			if (!(principal.getName().equalsIgnoreCase(user)
-					|| userAccount.getRoles().contains(UserRole.ADMIN))) {
-				response.sendError(403);
+		Principal principal = request.getUserPrincipal();
+		if (principal != null && checkEndpoint(request.getMethod(), request.getServletPath())) {
+			String login = principal.getName();
+			UserAccount user = userAccountRepository.findById(login).orElse(null);
+			if (user != null && user.isPasswordExpired()) {
+				response.sendError(403, "Password is expired");
 				return;
 			}
 		}
@@ -47,7 +44,7 @@ public class DeleteUserFilter implements Filter {
 		chain.doFilter(request, response);
 	}
 
-	private boolean checkEndPoint(String method, String path) {
-		return "DELETE".equalsIgnoreCase(method) && path.matches("/account/user/\\w+/?");
+	private boolean checkEndpoint(String method, String path) {
+		return !(HttpMethod.PUT.matches(method) && path.matches("/account/password/?"));
 	}
 }

@@ -1,5 +1,6 @@
 package telran.java47.accounting.model;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,6 +13,8 @@ import lombok.Setter;
 @Getter
 @Document(collection = "users")
 public class UserAccount {
+	private final static int DAYS_EXPIRED = 60;
+	
 	@Id
 	String login;
 	@Setter
@@ -21,9 +24,12 @@ public class UserAccount {
 	@Setter
 	String lastName;
 	Set<UserRole> roles;
+	@Setter
+	LocalDate passwordDate;
 
 	public UserAccount() {
 		roles = new HashSet<>();
+		passwordDate = LocalDate.now();
 	}	
 	
 	public UserAccount(String login, String password, String firstName, String lastName) {
@@ -40,6 +46,10 @@ public class UserAccount {
 	
 	public boolean removeRole(UserRole role) {
 		return roles.remove(role);
+	}
+	
+	public boolean isPasswordExpired() {
+		return passwordDate.isBefore(LocalDate.now().minusDays(DAYS_EXPIRED));
 	}
 
 }

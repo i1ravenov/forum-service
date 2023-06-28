@@ -1,8 +1,11 @@
 package telran.java47.accounting.service;
 
+import java.time.LocalDate;
+
 import org.mindrot.jbcrypt.BCrypt;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,7 @@ public class UserAccountServiceImpl implements UserAccountService, CommandLineRu
 
 	final UserAccountRepository userAccountRepository;
 	final ModelMapper modelMapper;
+	final PasswordEncoder passwordEncoder;
 	
 	@Override
 	public UserDto register(UserRegisterDto userRegisterDto) {
@@ -74,6 +78,7 @@ public class UserAccountServiceImpl implements UserAccountService, CommandLineRu
 	public void changePassword(String login, String newPassword) {
 		UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundException::new);
 		String password = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+		userAccount.setPasswordDate(LocalDate.now());
 		userAccount.setPassword(password);
 		userAccountRepository.save(userAccount);
 	}
@@ -86,6 +91,7 @@ public class UserAccountServiceImpl implements UserAccountService, CommandLineRu
 			userAccount.addRole(UserRole.USER);
 			userAccount.addRole(UserRole.MODERATOR);
 			userAccount.addRole(UserRole.ADMIN);
+			userAccount.setPasswordDate(LocalDate.now().minusDays(61));
 			userAccountRepository.save(userAccount);
 		}
 		
