@@ -45,6 +45,10 @@ public class Post {
 		this.likes = likes;
 	}
 	
+	public void addTag(String tag) {
+		tags.add(tag);
+	}
+	
 	public void addComment(Comment comment) {
 		comments.add(comment);
 	}

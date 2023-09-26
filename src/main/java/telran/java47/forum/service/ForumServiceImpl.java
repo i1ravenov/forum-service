@@ -3,6 +3,7 @@ package telran.java47.forum.service;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -94,9 +95,18 @@ public class ForumServiceImpl implements ForumService {
 	@Override
 	public PostDto updatePost(String id, PostUpdateDto postUpdateDto) {
 		Post post = forumRepo.findById(id).orElseThrow(() -> new PostNotFoundException());
-		post.setTitle(postUpdateDto.getTitle());
-		post.setContent(postUpdateDto.getContent());
-		post.setTags(postUpdateDto.getTags());
+		String content = postUpdateDto.getContent();
+		if (content != null) {
+			post.setContent(content);
+		}
+		String title = postUpdateDto.getTitle();
+		if (title != null) {
+			post.setTitle(title);
+		}
+		Set<String> tags = postUpdateDto.getTags();
+		if (tags != null) {
+			tags.forEach(post::addTag);
+		}
 		forumRepo.save(post);
 		return modelMapper.map(post, PostDto.class);
 	}
